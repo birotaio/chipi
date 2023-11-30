@@ -201,7 +201,7 @@ func (b *Builder) GenerateJson(ctx context.Context, callbacksObject shared.Chipi
 		}
 
 		// body
-		err = b.generateBodyDoc(ctx, &swagger, op, m.reqObject, typ, callbacksObject)
+		err = b.generateBodyDoc(ctx, &swagger, op, m.reqObject, typ, callbacksObject, m.method)
 		if err != nil {
 			return nil, err
 		}

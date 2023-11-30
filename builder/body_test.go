@@ -67,7 +67,7 @@ func TestBodyGenerator(t *testing.T) {
 
 		g.It("should return an error if structure does not implements BodyDecoder", func() {
 			req := bodyTestWithoutDecoderRequest{}
-			err := b.generateBodyDoc(ctx, b.swagger, &op, &req, reflect.TypeOf(req), shared.NewChipiCallbacks(nil))
+			err := b.generateBodyDoc(ctx, b.swagger, &op, &req, reflect.TypeOf(req), shared.NewChipiCallbacks(nil), "POST")
 			require.Error(g, err)
 
 			assert.Contains(g, err.Error(), "must implement BodyDecoder")
@@ -75,8 +75,14 @@ func TestBodyGenerator(t *testing.T) {
 
 		g.It("should return nil if structure implements BodyDecoder", func() {
 			req := bodyTestWithDecoderRequest{}
-			err := b.generateBodyDoc(ctx, b.swagger, &op, &req, reflect.TypeOf(req), shared.NewChipiCallbacks(nil))
+			err := b.generateBodyDoc(ctx, b.swagger, &op, &req, reflect.TypeOf(req), shared.NewChipiCallbacks(nil), "POST")
 			require.NoError(g, err)
+		})
+
+		g.It("should return error if method is GET", func() {
+			req := bodyTestWithDecoderRequest{}
+			err := b.generateBodyDoc(ctx, b.swagger, &op, &req, reflect.TypeOf(req), shared.NewChipiCallbacks(nil), "GET")
+			require.Error(g, err)
 		})
 
 	})
