@@ -119,6 +119,28 @@ func TestHoistDefinitions(t *testing.T) {
 			assert.Equal(g, "#/definitions/localized", resolver.schema.Properties["url"].Ref)
 		})
 
+		g.It("should keep a ref pointing inside a definition resolvable", func() {
+			resolver.schema = &openapi3.Schema{}
+			require.NoError(g, json.Unmarshal([]byte(`{
+				"type": "object",
+				"definitions": {"a": {"type": "object", "properties": {"b": {"type": "integer"}}}},
+				"properties": {"deep": {"$ref": "#/definitions/a/properties/b"}}
+			}`), resolver.schema))
+			doc = &openapi3.T{OpenAPI: "3.1.0", Info: &openapi3.Info{Title: "test", Version: "0"}, Paths: openapi3.NewPaths()}
+
+			config := generateConfig()
+			assert.Equal(g, map[string]any{"$ref": "#/components/schemas/custom_config.a/properties/b"}, config["properties"].(map[string]any)["deep"])
+
+			data, err := doc.MarshalJSON()
+			require.NoError(g, err)
+			loaded, err := openapi3.NewLoader().LoadFromData(data)
+			require.NoError(g, err)
+
+			deep := loaded.Components.Schemas[typeName(reflect.TypeOf(WithJsonSchema{}))].Value.Properties["Config"].Value.Properties["deep"]
+			require.NotNil(g, deep.Value)
+			assert.Equal(g, &openapi3.Types{"integer"}, deep.Value.Type)
+		})
+
 		g.It("should return the resolver schema as is without definitions", func() {
 			resolver.schema = openapi3.NewStringSchema()
 
