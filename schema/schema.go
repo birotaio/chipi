@@ -57,8 +57,12 @@ func (s *Schema) generateSchemaWithCastedType(ctx context.Context, doc *openapi3
 	customName := fmt.Sprintf("custom_%s", castName)
 	if _, found := doc.Components.Schemas[customName]; !found {
 		var createRef bool
+		var err error
 		schema := &openapi3.SchemaRef{}
 		schema.Value, createRef = callbacksObject.SchemaResolver(fieldInfo, castName, t, s.newGenerateSchemaCallback(ctx, doc, inlineLevel, callbacksObject))
+		if schema.Value, err = hoistDefinitions(doc, customName, schema.Value); err != nil {
+			return nil, err
+		}
 		if createRef {
 			doc.Components.Schemas[customName] = schema
 		} else {
